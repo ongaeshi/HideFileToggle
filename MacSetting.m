@@ -17,7 +17,7 @@
  */
 NSString* execCommand(NSString* command)
 { 
-  NSLog(command);
+  // NSLog(command);
   
   NSTask* task = [ [ NSTask alloc ] init ]; 
   NSPipe* pipe = [ NSPipe pipe ];
@@ -35,7 +35,7 @@ NSString* execCommand(NSString* command)
     
   // 出力の読み出し
   NSData* data = [ [ pipe fileHandleForReading ] availableData ];
-  NSLog([ NSString stringWithFormat : @"%s", [ data bytes ] ]);
+  // NSLog([ NSString stringWithFormat : @"%s", [ data bytes ] ]);
   return [ NSString stringWithFormat : @"%s", [ data bytes ] ];
 } 
 
@@ -64,6 +64,15 @@ NSString* int2Str(NSInteger val)
     return @"FALSE";
 }
 
+// --------------------------------------------------------------------------
+/**
+ * 末尾の1文字を削る
+ */
+NSString* chop(NSString* str)
+{
+  return [str substringToIndex:[str length]-1];
+}
+
 @implementation MacSetting
 
 // Nibファイル読み込み後
@@ -78,16 +87,15 @@ NSString* int2Str(NSInteger val)
   // defaults write com.apple.inputmethod.Kotoeri zhsy -dict-add " " -bool no
   // killall Kotoeri
   
-  NSString* str = execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles");
-  NSString* str2 = [str substringToIndex:[str length]-1];
-  NSLog(str2);
-  [showHideFile setState: str2Int(str2)];
+  NSString* str = chop(execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles"));
+  [showHideFile setState: str2Int(str)];
 }
 
 - (IBAction) updateHideFile:(id)sender
 {
   execCommand([@"/usr/bin/defaults write com.apple.finder AppleShowAllFiles " stringByAppendingString:int2Str([showHideFile state])]);
-  NSLog(execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles"));
+  execCommand(@"/usr/bin/killall Finder");
+  //  NSLog(execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles"));
 }
 
 @end
