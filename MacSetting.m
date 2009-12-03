@@ -60,12 +60,22 @@
   [showHideFile setState: [self str2int: [dict valueForKey:@"AppleShowAllFiles"]]];
 }
 
-- (void) updateHideFile
+- (IBAction) updateHideFile:(id)sender
 {
-  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-  NSDictionary* dict = [defaults persistentDomainForName:@"com.apple.finder"];
+  NSLog(@"hoge");
   
-  [defaults setPersistentDomain:dict forName:@"com.apple.finder"];
+  [self execCommand: [NSArray arrayWithObjects: 
+                      @"/usr/bin/defaults",
+                      @"write",
+                      @"com.apple.finder",
+                      @"AppleShowAllFiles",
+                      @"TRUE",
+                      nil]];
+                      
+//  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+//  NSDictionary* dict = [defaults persistentDomainForName:@"com.apple.finder"];
+  
+//  [defaults setPersistentDomain:dict forName:@"com.apple.finder"];
 
 }
 
