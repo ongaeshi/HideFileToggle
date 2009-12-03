@@ -8,6 +8,33 @@
 
 #import "MacSetting.h"
 
+int execCommand(NSString* command)
+{ 
+  NSTask* task = [ [ NSTask alloc ] init ]; 
+  NSPipe* pipe = [ NSPipe pipe ];
+  NSArray* array = [command componentsSeparatedByString:@" "];
+  //  NSLog([array description]);
+  
+  // 出力先の指定
+  [task setStandardOutput: pipe];
+  [task setStandardError : pipe]; 
+  
+  // 実行 
+  [ task setLaunchPath           : [array objectAtIndex:0] ];
+  [ task setArguments            : [array subarrayWithRange: NSMakeRange(1, ([array count] - 1))] ];
+  [ task launch ];
+  [ task waitUntilExit ];
+    
+  // 出力の読み出し
+  { 
+    NSData* data = [ [ pipe fileHandleForReading ] availableData ];
+    NSString* str  = [ NSString stringWithFormat : @"%s", [ data bytes ] ];
+    NSLog(str);
+  }
+
+  return( [ task terminationStatus ] );
+} 
+
 @implementation MacSetting
 
 - (void) execCommand: (NSArray*) args
@@ -63,6 +90,7 @@
 - (IBAction) updateHideFile:(id)sender
 {
   NSLog(@"hoge");
+  execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles");
   
   [self execCommand: [NSArray arrayWithObjects: 
                       @"/usr/bin/defaults",
