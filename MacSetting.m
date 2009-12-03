@@ -8,16 +8,24 @@
 
 #import "MacSetting.h"
 
-int execCommand(NSString* command)
+// --------------------------------------------------------------------------
+/**
+ * 外部コマンドを実行(コマンドはフルパスで渡すこと)
+ *
+ * @param command コマンド文字列(引数はスペースで区切って渡せる)
+ * @return 実行結果を文字列で返す
+ */
+NSString* execCommand(NSString* command)
 { 
+  NSLog(command);
+  
   NSTask* task = [ [ NSTask alloc ] init ]; 
   NSPipe* pipe = [ NSPipe pipe ];
   NSArray* array = [command componentsSeparatedByString:@" "];
-  //  NSLog([array description]);
   
   // 出力先の指定
   [task setStandardOutput: pipe];
-  [task setStandardError : pipe]; 
+  // [task setStandardError : pipe]; 
   
   // 実行 
   [ task setLaunchPath           : [array objectAtIndex:0] ];
@@ -26,41 +34,37 @@ int execCommand(NSString* command)
   [ task waitUntilExit ];
     
   // 出力の読み出し
-  { 
-    NSData* data = [ [ pipe fileHandleForReading ] availableData ];
-    NSString* str  = [ NSString stringWithFormat : @"%s", [ data bytes ] ];
-    NSLog(str);
-  }
-
-  return( [ task terminationStatus ] );
+  NSData* data = [ [ pipe fileHandleForReading ] availableData ];
+  NSLog([ NSString stringWithFormat : @"%s", [ data bytes ] ]);
+  return [ NSString stringWithFormat : @"%s", [ data bytes ] ];
 } 
 
-@implementation MacSetting
-
-- (void) execCommand: (NSArray*) args
+// --------------------------------------------------------------------------
+/**
+ * TRUE -> 1, FALSE -> 0
+ */
+NSInteger str2Int(NSString* str)
 {
-  NSTask* task = [[NSTask alloc] init];
-  //[task setStandardOutput: [NSPipe pipe]];
-  //[task setStandardError: [task standardOutput]];
-  [task setLaunchPath: [args objectAtIndex:0]];
-  [task setArguments: [args subarrayWithRange: NSMakeRange (1, ([args count] - 1))]];
-#if 0
-  [[NSNotificationCenter defaultCenter] addObserver:self 
-                                        selector:@selector(getData:) 
-                                        name: NSFileHandleReadCompletionNotification 
-                                        object: [[task standardOutput] fileHandleForReading]];
-#endif
-  // [[[task standardOutput] fileHandleForReading] readInBackgroundAndNotify];
-  [task launch];    
-}
-
-- (NSInteger) str2int: (NSString*) str
-{
-  if (str == @"TRUE")
-    return TRUE;
+  NSLog(@"%d", [str length]);
+  if ([str compare: @"TRUE"] == NSOrderedSame)
+    return NSOnState;
   else
-    return FALSE;
+    return NSOffState;
 }
+
+// --------------------------------------------------------------------------
+/**
+ * 1 -> "TRUE", 0 -> "FALSE"
+ */
+NSString* int2Str(NSInteger val)
+{
+  if (val == 1)
+    return @"TRUE";
+  else
+    return @"FALSE";
+}
+
+@implementation MacSetting
 
 // Nibファイル読み込み後
 - (void) awakeFromNib 
@@ -68,43 +72,22 @@ int execCommand(NSString* command)
   // 隠しファイル
   // defaults write com.apple.finder AppleShowAllFiles TRUE
   // defaults write com.apple.finder AppleShowAllFiles FALSE
+  // killall Finder
   
   // 半角スペース
   // defaults write com.apple.inputmethod.Kotoeri zhsy -dict-add " " -bool no
   // killall Kotoeri
   
-  NSLog(@"showHideFile = %d", [showHideFile state]);
-  NSLog(@"alwaysHalfSizeSpace = %d", [alwaysHalfSizeSpace state]);
-  
-  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-  
-  NSDictionary* dict = [defaults persistentDomainForName:@"com.apple.finder"];
-  
-  
-  NSLog(@"value = %@", [dict valueForKey:@"AppleShowAllFiles"]);
-//  NSLog([dict description]);
-  
-  [showHideFile setState: [self str2int: [dict valueForKey:@"AppleShowAllFiles"]]];
+  NSString* str = execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles");
+  NSString* str2 = [str substringToIndex:[str length]-1];
+  NSLog(str2);
+  [showHideFile setState: str2Int(str2)];
 }
 
 - (IBAction) updateHideFile:(id)sender
 {
-  NSLog(@"hoge");
-  execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles");
-  
-  [self execCommand: [NSArray arrayWithObjects: 
-                      @"/usr/bin/defaults",
-                      @"write",
-                      @"com.apple.finder",
-                      @"AppleShowAllFiles",
-                      @"TRUE",
-                      nil]];
-                      
-//  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-//  NSDictionary* dict = [defaults persistentDomainForName:@"com.apple.finder"];
-  
-//  [defaults setPersistentDomain:dict forName:@"com.apple.finder"];
-
+  execCommand([@"/usr/bin/defaults write com.apple.finder AppleShowAllFiles " stringByAppendingString:int2Str([showHideFile state])]);
+  NSLog(execCommand(@"/usr/bin/defaults read com.apple.finder AppleShowAllFiles"));
 }
 
 @end
