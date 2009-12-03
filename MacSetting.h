@@ -14,4 +14,6 @@
   IBOutlet NSButton* alwaysHalfSizeSpace; // ことえり起動時も半角スペースで入力
 }
 
+- (IBAction) updateHideFile;
+
 @end

@@ -10,6 +10,23 @@
 
 @implementation MacSetting
 
+- (void) execCommand: (NSArray*) args
+{
+  NSTask* task = [[NSTask alloc] init];
+  //[task setStandardOutput: [NSPipe pipe]];
+  //[task setStandardError: [task standardOutput]];
+  [task setLaunchPath: [args objectAtIndex:0]];
+  [task setArguments: [args subarrayWithRange: NSMakeRange (1, ([args count] - 1))]];
+#if 0
+  [[NSNotificationCenter defaultCenter] addObserver:self 
+                                        selector:@selector(getData:) 
+                                        name: NSFileHandleReadCompletionNotification 
+                                        object: [[task standardOutput] fileHandleForReading]];
+#endif
+  // [[[task standardOutput] fileHandleForReading] readInBackgroundAndNotify];
+  [task launch];    
+}
+
 - (NSInteger) str2int: (NSString*) str
 {
   if (str == @"TRUE")
@@ -43,5 +60,13 @@
   [showHideFile setState: [self str2int: [dict valueForKey:@"AppleShowAllFiles"]]];
 }
 
+- (void) updateHideFile
+{
+  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+  NSDictionary* dict = [defaults persistentDomainForName:@"com.apple.finder"];
+  
+  [defaults setPersistentDomain:dict forName:@"com.apple.finder"];
+
+}
 
 @end
