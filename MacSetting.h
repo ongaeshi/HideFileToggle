@@ -11,10 +11,8 @@
 
 @interface MacSetting : NSObject {
   IBOutlet NSButton* showHideFile; // 隠しファイルを表示する
-  IBOutlet NSButton* alwaysHalfSizeSpace; // ことえり起動時も半角スペースで入力
 }
 
 - (IBAction) updateHideFile:(id)sender;
-- (IBAction) updateHalfSizeSpace:(id)sender;
 
 @end
