@@ -15,5 +15,6 @@
 }
 
 - (IBAction) updateHideFile:(id)sender;
+- (IBAction) updateHalfSizeSpace:(id)sender;
 
 @end
